@@ -1,0 +1,23 @@
+{
+  "name": "rip-door-2",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "engines": {
+    "node": "6.10.2"
+  },
+  "dependencies": {
+    "express": "^4.15.2",
+    "path": "^0.12.7"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://gitlab.factset.com/bhutchins/rip-door-2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
