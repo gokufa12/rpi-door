@@ -1,21 +1,14 @@
 <html>
-    <body>
-    <p id='server-time'></p>
-    <pre id='initial-state'></pre>
+<header>
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.5.6/angular.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/lodash/4.17.4/lodash.min.js"></script>
+    <script src="app.js"></script>
+    <script src="services/socket.service.js"></script>
+    <script src="UI/test.directive.js"></script>
     <script src="/socket.io/socket.io.js"></script>
-    <script>
-        var socket = io('/client');
-        var el = document.getElementById('server-time');
-        var dataEl = document.getElementById('initial-state');
-        socket.on('time', function(timeString) {
-            el.innerHTML = 'Server time: ' + timeString;
-        });
-        socket.on('initial-state', function(data) {
-            dataEl.innerHTML = JSON.stringify(data, undefined, 4);
-        });
-        socket.on('room-update', function(data) {
-            console.log(JSON.stringify(data));
-        })
-    </script>
-    </body>
+</header>
+<body ng-app="rpiDoor">
+<h1>FLEX ROOM TRACKER TOOL WEBSITE</h1>
+    <test></test>
+</body>
 </html>
