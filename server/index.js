@@ -19,40 +19,26 @@ var clientChannel = io.of('/client');
 var roomChannel = io.of('/rooms');
 
 var pis = {
-    one: {
-        id: 'one',
-        room: 'flex room 1',
-        status: 'available'
+    Room1: {
+        id: 'Room1',
+        status: 'free'
     },
-    two: {
-        id: 'two',
-        room: 'flex room 2',
-        status: 'taken'
+    Room2: {
+        id: 'Room2',
+        status: 'occupied'
     }
 };
-var clientSockets = [];
 
 clientChannel.on('connection', function(socket) {
     console.log('client connected');
 
-    clientSockets.push(socket);
     socket.emit('initial-state', pis);
 
     socket.on('disconnect', function() {
         console.log('client disconnected');
-        _.pull(clientSockets, socket);
     });
 });
 
-roomChannel.on('connection', function(socket) {
-    console.log('PI CONNECTED!!!!!');
-    socket.on('register', function(data) {
-        socket.data = data;
-    });
-    socket.on('update', function(data) {
-        console.lof(data);
-    });
-});
 
 function getRandomInt(min, max) {
     min = Math.ceil(min);
@@ -62,13 +48,74 @@ function getRandomInt(min, max) {
 
 _.forEach(pis, function(pi) {
    var setStatus = function() {
-        pi.status = pi.status === 'taken' ? 'available' : 'taken';
-        clientChannel.emit('room-update', pi);
+        pi.status = pi.status === 'free' ? 'occupied' : 'free';
+        clientChannel.emit('room-update', {
+            room: pi.id,
+            status: pi.status
+        });
         setTimeout(setStatus, getRandomInt(2500, 10000))
     };
     setTimeout(setStatus, getRandomInt(2500, 10000))
 });
 
-setInterval( function() {
-    clientChannel.emit('time', new Date().toTimeString())
-}, 1000);
+function roomFree(socket) {
+    if (socket.timeout) {
+        clearTimeout(socket.timeout);
+        socket.timeout = undefined;
+    }
+    clientChannel.emit('room-update', {
+        room: socket.id,
+        status: 'free'
+    });
+}
+
+var overdueTimeout = 10 * 1000;
+function roomOccupied(socket) {
+    socket.timeout = setTimeout(function() {
+        socket.emit('overdue');
+        clientChannel.emit('room-overdue', {
+            room: socket.id
+        });
+    }, overdueTimeout);
+    clientChannel.emit('room-update', {
+        room: socket.id,
+        status: 'occupied'
+    });
+}
+
+roomChannel.on('connection', function(socket) {
+    console.log('PI CONNECTED!!!!!');
+
+    socket.on('register', function(id) {
+        socket.id = id;
+        pis[id] = {
+            id: id,
+            status: 'unknown',
+            socket: socket
+        }
+    });
+
+    socket.on('disconnect', function() {
+        console.log('PI Disconnected');
+
+        if (socket.timeout) {
+            clearTimeout(socket.timeout);
+        }
+        delete pis[socket.id];
+        clientChannel.emit('room-disconnect', {
+            room: socket.id
+        });
+    });
+
+    socket.on('update', function(state) {
+        console.log(state);
+        switch(state) {
+            case 'free':
+                roomFree(socket);
+                break;
+            case 'occupied':
+                roomOccupied(socket);
+                break
+        }
+    });
+});
