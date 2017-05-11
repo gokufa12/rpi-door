@@ -1,0 +1,23 @@
+<h1>FLEX ROOM TRACKER TOOL WEBSITE</h1>
+<div id="data">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>Location</th>
+        <th>Room Number</th>
+        <th>Status</th>
+        <th>Time Taken</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr
+          ng-repeat="room in $ctrl.rooms track by room.room"
+          ng-class="$ctrl.getClass(room)">
+        <td>Norwalk</td>
+        <td>{{room.room}}</td>
+        <td>{{room.status}}</td>
+        <td>{{room.time}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
