@@ -20,11 +20,11 @@ var roomChannel = io.of('/rooms');
 
 var pis = {
     Room1: {
-        id: 'Room1',
+        room: 'Room1',
         status: 'free'
     },
     Room2: {
-        id: 'Room2',
+        room: 'Room2',
         status: 'occupied'
     }
 };
@@ -48,11 +48,16 @@ function getRandomInt(min, max) {
 
 _.forEach(pis, function(pi) {
    var setStatus = function() {
-        pi.status = pi.status === 'free' ? 'occupied' : 'free';
-        clientChannel.emit('room-update', {
-            room: pi.id,
-            status: pi.status
-        });
+       if (pi.status === 'free') {
+           pi.status = 'occupied';
+           pi.time = new Date();
+       } else if ( pi.status === 'occupied' ) {
+           pi.status = 'overdue';
+       } else {
+           pi.status = 'free';
+           pi.time = null;
+       }
+        clientChannel.emit('room-update', pi );
         setTimeout(setStatus, getRandomInt(2500, 10000))
     };
     setTimeout(setStatus, getRandomInt(2500, 10000))
@@ -64,21 +69,22 @@ function roomFree(socket) {
         socket.timeout = undefined;
     }
     clientChannel.emit('room-update', {
-        room: socket.id,
+        room: socket.room,
         status: 'free'
     });
 }
 
-var overdueTimeout = 10 * 1000;
+var overdueTimeout = 500;
 function roomOccupied(socket) {
     socket.timeout = setTimeout(function() {
         socket.emit('overdue');
-        clientChannel.emit('room-overdue', {
-            room: socket.id
+        clientChannel.emit('room-update', {
+            room: socket.room,
+            status: 'overdue'
         });
     }, overdueTimeout);
     clientChannel.emit('room-update', {
-        room: socket.id,
+        room: socket.room,
         status: 'occupied'
     });
 }
@@ -86,10 +92,10 @@ function roomOccupied(socket) {
 roomChannel.on('connection', function(socket) {
     console.log('PI CONNECTED!!!!!');
 
-    socket.on('register', function(id) {
-        socket.id = id;
-        pis[id] = {
-            id: id,
+    socket.on('register', function(room) {
+        socket.room = room;
+        pis[room] = {
+            room: room,
             status: 'unknown',
             socket: socket
         }
@@ -101,9 +107,9 @@ roomChannel.on('connection', function(socket) {
         if (socket.timeout) {
             clearTimeout(socket.timeout);
         }
-        delete pis[socket.id];
+        delete pis[socket.room];
         clientChannel.emit('room-disconnect', {
-            room: socket.id
+            room: socket.room
         });
     });
 
@@ -115,7 +121,7 @@ roomChannel.on('connection', function(socket) {
                 break;
             case 'occupied':
                 roomOccupied(socket);
-                break
+                break;
         }
     });
 });
