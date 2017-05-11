@@ -1,13 +1,21 @@
 <html>
     <body>
     <p id='server-time'></p>
+    <pre id='initial-state'></pre>
     <script src="/socket.io/socket.io.js"></script>
     <script>
-        var socket = io();
+        var socket = io('/client');
         var el = document.getElementById('server-time');
+        var dataEl = document.getElementById('initial-state');
         socket.on('time', function(timeString) {
             el.innerHTML = 'Server time: ' + timeString;
         });
+        socket.on('initial-state', function(data) {
+            dataEl.innerHTML = JSON.stringify(data, undefined, 4);
+        });
+        socket.on('room-update', function(data) {
+            console.log(JSON.stringify(data));
+        })
     </script>
     </body>
 </html>
