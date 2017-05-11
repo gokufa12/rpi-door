@@ -16,6 +16,7 @@ var server = app.listen(PORT, function() {
 var io = socketIO(server);
 
 var clientChannel = io.of('/client');
+var roomChannel = io.of('/rooms');
 
 var pis = {
     one: {
@@ -40,6 +41,16 @@ clientChannel.on('connection', function(socket) {
     socket.on('disconnect', function() {
         console.log('client disconnected');
         _.pull(clientSockets, socket);
+    });
+});
+
+roomChannel.on('connection', function(socket) {
+    console.log('PI CONNECTED!!!!!');
+    socket.on('register', function(data) {
+        socket.data = data;
+    });
+    socket.on('update', function(data) {
+        console.lof(data);
     });
 });
 
