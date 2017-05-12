@@ -21,11 +21,13 @@ var roomChannel = io.of('/rooms');
 var pis = {
     Room1: {
         room: 'Room1',
-        status: 'free'
+        status: 'free',
+        time: null
     },
     Room2: {
         room: 'Room2',
-        status: 'occupied'
+        status: 'occupied',
+        time: new Date()
     }
 };
 

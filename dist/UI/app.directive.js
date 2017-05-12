@@ -2,11 +2,23 @@ function test( socketService ) {
   var vm = this;
   vm.rooms = {};
 
+  function formatServerDate(date) {
+    return new Date(date).toLocaleTimeString();
+  }
+
   socketService.on( 'initial-state', function( data ) {
+    _.forEach(data, function(room) {
+      if (room.time) {
+        room.time = formatServerDate(room.time);
+      }
+    });
     vm.rooms = data;
   } );
 
   socketService.on( 'room-update', function( data ) {
+    if (data.time) {
+      data.time = formatServerDate(data.time);
+    }
     vm.rooms[ data.room ] = _.merge( vm.rooms[data.room], data );
   } );
 
