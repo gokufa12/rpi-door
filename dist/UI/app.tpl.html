@@ -1,4 +1,4 @@
-<h1>FLEX ROOM TRACKER TOOL WEBSITE</h1>
+<h1>Flex Room Availabilities</h1>
 <div id="data">
   <table class="table table-striped">
     <thead>
@@ -11,7 +11,7 @@
     </thead>
     <tbody>
       <tr class="room-row"
-          ng-repeat="room in $ctrl.rooms track by room.room | orderBy:loc | orderBy:room"
+          ng-repeat="room in $ctrl.rooms track by room.room | orderBy:room"
           ng-class="$ctrl.getClass(room)">
         <td class="room-row-item">{{room.loc}}</td>
         <td class="room-row-item">{{room.room}}</td>
