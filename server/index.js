@@ -48,7 +48,7 @@ clientChannel.on('connection', function(socket) {
 
     socket.on('reserve-room', function(data) {
         if ( !_.isUndefined( _.get( pis, [ data.room, 'socket' ] ) ) ) {
-            pis[ data.room ].socket.emit( 'reserve-room', data );
+            roomReserve(pis[ data.room ].socket);
         }
     });
 });
@@ -89,9 +89,30 @@ function roomFree(socket) {
         status: 'free'
     });
 }
+var reserveTimeout = 500;
+function roomReserve(socket) {
+    socket.reservedTimeout = setTimeout( function() {
+        clientChannel.emit('room-updaste', {
+            room: socket.room,
+            status: 'free'
+        });
+    }, reserveTimeout);
+    socket.emit('reserve', {
+        duration: 2000
+    });
+    clientChannel.emit('room-update', {
+        room: socket.room,
+        status: 'reserved'
+    });
+
+}
 
 var overdueTimeout = 500;
 function roomOccupied(socket) {
+    if (socket.reservedTimeout) {
+        clearTimeout(socket.reservedTimeout);
+        socket.reservedTimeout = undefined;
+    }
     socket.timeout = setTimeout(function() {
         socket.emit('overdue');
         log(socket.room + ' - New Status: overdue');
@@ -125,6 +146,9 @@ roomChannel.on('connection', function(socket) {
 
         if (socket.timeout) {
             clearTimeout(socket.timeout);
+        }
+        if (socket.reservedTimeout) {
+            clearTimeout(socket.reservedTimeout);
         }
         delete pis[socket.room];
         clientChannel.emit('room-disconnect', {

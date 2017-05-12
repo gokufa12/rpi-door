@@ -20,8 +20,8 @@
           <div ng-if="room.time">
             {{room.time}}
           </div>
-          <div ng-if="!room.time">
-            <button type="button" class="btn btn-primary" ng-click="$ctrl.reserveRoom(room)">Download!</button>
+          <div ng-if="!room.time && room.status === 'free'">
+            <button type="button" class="btn btn-primary" ng-click="$ctrl.reserveRoom(room)">Reserve</button>
           </div>
         </td>
       </tr>
