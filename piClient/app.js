@@ -1,6 +1,11 @@
+var propParse = require('properties-parser');
+var settings = propParse.read('./settings.conf');
 var gpio = require('rpi-gpio');
-var socket = require('socket.io-client')('http://localhost:8000/rooms', { 'force new connections' : true });
+
+//handle cleanup on various exits
 require('./cleanup.js').Cleanup(cleanup);
+
+var socket = require('socket.io-client')(`${settings.Server}:${settings.ServerPort}/rooms`);
 
 var debug = process.env.DEBUG;
 function debugLog(message) {
@@ -9,40 +14,66 @@ function debugLog(message) {
   }
 }
 
+var sensorPin = 16;
+var ledPin = 11;
+var room = settings.RoomName;
+
+var interId;
+//Listen for messages from server
 socket.on('reserve', function(duration) {
   var dur = duration.duration;
   var elapsed = 0;
   var flashOn = false;
   
-  var interId = setInterval(function() {
+  interId = setInterval(function() {
     if(!flashOn) {
-      write(11,true);
+      write(ledPin,true);
     } else {
-      write(11,false);
+      write(ledPin,false);
     }
     flashOn = !flashOn;
     elapsed += 1000;
     if(elapsed > dur) {
       //stop interval, turn LED off
       clearInterval(interId);
-      write(11,false);
+      write(ledPin,false);
     }
   }, 1000);
-
-
 });
 
+socket.on('overdue', function() {
+  var flashOn = false;
 
-var room = 'Flex4403';
+  interId = setInterval(function() {
+    gpio.read(sensorPin, function(err,value) {
+      if(value) {
+        //stop interval, turn LED off
+        clearInterval(interId);
+        write(ledPin,false);
+        return;
+      }
 
+      if(!flashOn) {
+        write(ledPin,true);
+      } else {
+        write(ledPin,false);
+      }
+      flashOn = !flashOn;
+    });
+  }, 1000);
+});
+
+//Set up GPIO
 gpio.setMode(gpio.MODE_RPI);
+//On changes, we will read the input and send an update
 gpio.on('change', readInput);
 
-gpio.setup(11, gpio.DIR_OUT, function(err) {debugLog(err);});
-gpio.setup(16, gpio.DIR_IN, gpio.EDGE_BOTH, function(err) {
+gpio.setup(ledPin, gpio.DIR_OUT, function(err) {debugLog(err);});
+gpio.setup(sensorPin, gpio.DIR_IN, gpio.EDGE_BOTH, function(err) {
   if(err) {
     debugLog(err);
   }
+  //register status with server
   if(socket.connected) {
     register();
   } else {
@@ -52,10 +83,11 @@ gpio.setup(16, gpio.DIR_IN, gpio.EDGE_BOTH, function(err) {
   }
 });
 
+//Function to register name, status with server
 function register() {
   debugLog('connect');
   socket.emit('register',room);
-  gpio.read(16, function(err,value) {
+  gpio.read(sensorPin, function(err,value) {
     if(err) throw err;
     if(value) {
       console.log('free');
@@ -63,10 +95,12 @@ function register() {
     } else {
       console.log('occupied');
       socket.emit('update', 'occupied');
+      write(ledPin,true);
     }
   });
 }
 
+//Write high or low to pin
 function write(pin, high_low) {
   gpio.write(pin, high_low, function(err) {
     if (err) throw err;
@@ -74,23 +108,21 @@ function write(pin, high_low) {
   });
 }
 
-function readInput(channel, value) {
+//Read input, send necessary updates
+function readInput(pin, value) {
     if(value) {
       socket.emit('update', 'free');
-//      gpio.write(11, true, function(err) {
-//        if(err) throw err;
-//        debugLog('Written to pin');
-//      });
+      write(ledPin,false);
     } else {
+      //Send update, stop flashing and interval if running
       socket.emit('update', 'occupied');
-//      gpio.write(11, false, function(err) {
-//        if(err) throw err;
-//        debugLog('Written to pin');
-//      });
+      clearInterval(interId);
+      write(ledPin,false);
     }
-    debugLog('The value is ' + value + ' on channel ' + channel);
+    debugLog('The value is ' + value + ' on pin ' + pin);
 }
 
+//make sure to clean up gpio state
 function cleanup() {
   gpio.destroy(function() {
     debugLog('Pins reset');
