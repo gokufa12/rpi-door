@@ -106,7 +106,7 @@ function roomFree(socket) {
         time: socket.time
     });
 }
-var reserveTimeout = 5000;
+var reserveTimeout = 30 * 1000;
 function roomReserve(socket) {
     if (socket.reservedTimeout) {
         clearTimeout(socket.reservedTimeout);

@@ -8,6 +8,7 @@ function test( socketService, $scope ) {
 
   socketService.on( 'initial-state', function( data ) {
     _.forEach(data, function(room) {
+      room.displayStatus = room.status.charAt(0).toUpperCase() + room.status.slice(1);
       if (room.time) {
         room.time = formatServerDate(room.time);
       }
@@ -32,6 +33,7 @@ function test( socketService, $scope ) {
   }
 
   socketService.on( 'room-update', function( data ) {
+    data.displayStatus = data.status.charAt(0).toUpperCase() + data.status.slice(1);
     if (data.time) {
       data.time = formatServerDate(data.time);
     }

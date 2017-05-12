@@ -15,7 +15,7 @@
           ng-class="$ctrl.getClass(room)">
         <td class="room-row-item">Norwalk</td>
         <td class="room-row-item">{{room.room}}</td>
-        <td class="room-row-item">{{room.status}}</td>
+        <td class="room-row-item">{{room.displayStatus}}</td>
         <td class="room-row-item">
           <div ng-if="room.time && room.status !== 'reserved'">
             {{room.time}}
