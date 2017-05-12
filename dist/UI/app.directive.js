@@ -30,6 +30,8 @@ function test( socketService ) {
     if ( room.status === 'overdue' ) {
       return 'danger';
     } else if ( room.status === 'occupied' ) {
+      return 'primary';
+    } else if( room.status === 'reserved') {
       return 'warning';
     }
     return 'success';
