@@ -11,9 +11,9 @@
     </thead>
     <tbody>
       <tr class="room-row"
-          ng-repeat="room in $ctrl.rooms track by room.room"
+          ng-repeat="room in $ctrl.rooms track by room.room | orderBy:loc | orderBy:room"
           ng-class="$ctrl.getClass(room)">
-        <td class="room-row-item">Norwalk</td>
+        <td class="room-row-item">{{room.loc}}</td>
         <td class="room-row-item">{{room.room}}</td>
         <td class="room-row-item">{{room.displayStatus}}</td>
         <td class="room-row-item">

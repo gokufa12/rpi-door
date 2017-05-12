@@ -17,6 +17,7 @@ function debugLog(message) {
 var sensorPin = 16;
 var ledPin = 11;
 var room = settings.RoomName;
+var loc = settings.Location;
 
 var interId;
 //Listen for messages from server
@@ -60,7 +61,7 @@ socket.on('overdue', function() {
       }
       flashOn = !flashOn;
     });
-  }, 1000);
+  }, 200);
 });
 
 //Set up GPIO
@@ -86,7 +87,7 @@ gpio.setup(sensorPin, gpio.DIR_IN, gpio.EDGE_BOTH, function(err) {
 //Function to register name, status with server
 function register() {
   debugLog('connect');
-  socket.emit('register',room);
+  socket.emit('register',{'room':room, 'loc':loc});
   gpio.read(sensorPin, function(err,value) {
     if(err) throw err;
     if(value) {
