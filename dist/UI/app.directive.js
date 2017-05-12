@@ -33,6 +33,10 @@ function test( socketService ) {
       return 'warning';
     }
     return 'success';
+  };
+
+  vm.reserveRoom = function( room ) {
+    socketService.emit( 'reserve-room', room );
   }
 }
 

@@ -6,6 +6,9 @@ function socket( $rootScope ) {
       socketInstance.on( channel, function( data ) {
         $rootScope.$apply( callback( data ) );
       } );
+    },
+    emit: function( channel, data ) {
+      socketInstance.emit( channel, data );
     }
   }
 }

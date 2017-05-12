@@ -16,7 +16,14 @@
         <td>Norwalk</td>
         <td>{{room.room}}</td>
         <td>{{room.status}}</td>
-        <td>{{room.time}}</td>
+        <td>
+          <div ng-if="room.time">
+            {{room.time}}
+          </div>
+          <div ng-if="!room.time">
+            <button type="button" class="btn btn-primary" ng-click="$ctrl.reserveRoom(room)">Download!</button>
+          </div>
+        </td>
       </tr>
     </tbody>
   </table>
