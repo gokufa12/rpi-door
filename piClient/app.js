@@ -1,60 +1,98 @@
 var gpio = require('rpi-gpio');
-//var socket = require('socket.io-client')('http://localhost:8000/rooms');
-//require('./cleanup.js').Cleanup(cleanup);
+var socket = require('socket.io-client')('http://localhost:8000/rooms', { 'force new connections' : true });
+require('./cleanup.js').Cleanup(cleanup);
+
+var debug = process.env.DEBUG;
+function debugLog(message) {
+  if(debug) {
+    console.log(message);
+  }
+}
+
+socket.on('reserve', function(duration) {
+  var dur = duration.duration;
+  var elapsed = 0;
+  var flashOn = false;
+  
+  var interId = setInterval(function() {
+    if(!flashOn) {
+      write(11,true);
+    } else {
+      write(11,false);
+    }
+    flashOn = !flashOn;
+    elapsed += 1000;
+    if(elapsed > dur) {
+      //stop interval, turn LED off
+      clearInterval(interId);
+      write(11,false);
+    }
+  }, 1000);
+
+
+});
+
 
 var room = 'Flex4403';
 
-//socket.on('connect',function() {
-//  console.log('connect');
-//  socket.emit('register',room);
-//});
-
-gpio.setMode(gpio.MODE_BCM);
+gpio.setMode(gpio.MODE_RPI);
 gpio.on('change', readInput);
 
-//setInterval(function() {
-//  gpio.read(23,function(err, val) {
-//    console.log(val);
-//  });
-//}, 1000);
+gpio.setup(11, gpio.DIR_OUT, function(err) {debugLog(err);});
+gpio.setup(16, gpio.DIR_IN, gpio.EDGE_BOTH, function(err) {
+  if(err) {
+    debugLog(err);
+  }
+  if(socket.connected) {
+    register();
+  } else {
+    socket.on('connect',function() {
+      register();
+    });
+  }
+});
 
-gpio.setup(23, gpio.DIR_IN, gpio.EDGE_BOTH, function(err) {
-  console.log(err);
+function register() {
+  debugLog('connect');
+  socket.emit('register',room);
+  gpio.read(16, function(err,value) {
+    if(err) throw err;
+    if(value) {
+      console.log('free');
+      socket.emit('update', 'free');
+    } else {
+      console.log('occupied');
+      socket.emit('update', 'occupied');
+    }
   });
-//gpio.setup(11, gpio.DIR_HIGH, write);
+}
 
-//function write(err) {
-//  if(err) throw err;
-//  gpio.write(11, false, function(err) {
-//    if (err) throw err;
-//    console.log('Written to pin');
-//  });
-//}
+function write(pin, high_low) {
+  gpio.write(pin, high_low, function(err) {
+    if (err) throw err;
+    debugLog('Written ' + high_low + ' to pin ' + pin);
+  });
+}
 
 function readInput(channel, value) {
-//    if(channel !== 23)
-//      return;
-//    if(value) {
-//      socket.emit('update', 'occupied');
+    if(value) {
+      socket.emit('update', 'free');
 //      gpio.write(11, true, function(err) {
 //        if(err) throw err;
-//        console.log('Written to pin');
+//        debugLog('Written to pin');
 //      });
-//    } else {
-//      socket.emit('update', 'free');
+    } else {
+      socket.emit('update', 'occupied');
 //      gpio.write(11, false, function(err) {
 //        if(err) throw err;
-//        console.log('Written to pin');
+//        debugLog('Written to pin');
 //      });
-//    }
-    console.log('The value is ' + value + ' on channel ' + channel);
+    }
+    debugLog('The value is ' + value + ' on channel ' + channel);
 }
 
 function cleanup() {
   gpio.destroy(function() {
-    console.log('Pins reset');
+    debugLog('Pins reset');
   });
 }
-
-//cleanup();
-//process.exit(2);
