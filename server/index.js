@@ -94,7 +94,7 @@ function roomFree(socket) {
 var reserveTimeout = 500;
 function roomReserve(socket) {
     socket.reservedTimeout = setTimeout( function() {
-        clientChannel.emit('room-updaste', {
+        clientChannel.emit('room-update', {
             room: socket.room,
             status: 'free'
         });
