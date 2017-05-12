@@ -1,3 +1,10 @@
 body{
     text-align:center;
 }
+.room-row {
+    height: 51px;
+}
+
+.table > tbody > tr > td.room-row-item  {
+    vertical-align: middle;
+}

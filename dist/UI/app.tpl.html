@@ -10,13 +10,13 @@
       </tr>
     </thead>
     <tbody>
-      <tr
+      <tr class="room-row"
           ng-repeat="room in $ctrl.rooms track by room.room"
           ng-class="$ctrl.getClass(room)">
-        <td>Norwalk</td>
-        <td>{{room.room}}</td>
-        <td>{{room.status}}</td>
-        <td>
+        <td class="room-row-item">Norwalk</td>
+        <td class="room-row-item">{{room.room}}</td>
+        <td class="room-row-item">{{room.status}}</td>
+        <td class="room-row-item">
           <div ng-if="room.time && room.status !== 'reserved'">
             {{room.time}}
           </div>
