@@ -95,6 +95,15 @@ function roomFree(socket) {
 }
 var reserveTimeout = 5000;
 function roomReserve(socket) {
+    if (socket.reservedTimeout) {
+        clearTimeout(socket.reservedTimeout);
+        socket.reservedTimeout = undefined;
+    }
+
+    if (socket.timeout) {
+        clearTimeout(socket.timeout);
+        socket.timeout = undefined;
+    }
     socket.reservedTimeout = setTimeout( function() {
         clientChannel.emit('room-update', {
             room: socket.room,
@@ -116,6 +125,11 @@ function roomOccupied(socket) {
     if (socket.reservedTimeout) {
         clearTimeout(socket.reservedTimeout);
         socket.reservedTimeout = undefined;
+    }
+
+    if (socket.timeout) {
+        clearTimeout(socket.timeout);
+        socket.timeout = undefined;
     }
     socket.timeout = setTimeout(function() {
         socket.emit('overdue');
