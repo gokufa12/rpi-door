@@ -30,7 +30,7 @@ clientChannel.on('connection', function(socket) {
     log('client connected');
 
     socket.emit('initial-state', _.transform( pis, function(acc, room, key) {
-        acc[key] = _.pick(room, ['room', 'status', 'time']);
+        acc[key] = _.pick(room, ['room', 'loc', 'status', 'time']);
     }, {}));
 
     socket.on('disconnect', function() {
@@ -66,6 +66,7 @@ function roomFree(socket) {
 
     clientChannel.emit('room-update', {
         room: socket.room,
+        loc: socket.loc,
         status: 'free',
         time: socket.time
     });
@@ -90,6 +91,7 @@ function roomReserve(socket) {
         });
         clientChannel.emit('room-update', {
             room: socket.room,
+            loc: socket.loc,
             status: 'free',
             time: socket.time
         });
@@ -106,6 +108,7 @@ function roomReserve(socket) {
 
     clientChannel.emit('room-update', {
         room: socket.room,
+        loc: socket.loc,
         status: 'reserved',
         duration: reserveTimeout
     });
@@ -135,6 +138,7 @@ function roomOccupied(socket) {
 
         clientChannel.emit('room-update', {
             room: socket.room,
+            loc: socket.loc,
             status: 'overdue',
             time: socket.time
         });
@@ -150,6 +154,7 @@ function roomOccupied(socket) {
 
     clientChannel.emit('room-update', {
         room: socket.room,
+        loc: socket.loc,
         status: 'occupied',
         time: socket.time
     });
@@ -158,11 +163,13 @@ function roomOccupied(socket) {
 roomChannel.on('connection', function(socket) {
     log('PI CONNECTED!!!!!');
 
-    socket.on('register', function(room) {
-        log(room + ' registered!');
-        socket.room = room;
-        pis[room] = {
-            room: room,
+    socket.on('register', function(data) {
+        log(data.room + ' registered!');
+        socket.room = data.room;
+        socket.loc = data.loc;
+        pis[data.room] = {
+            room: data.room,
+            loc: data.loc,
             status: 'unknown',
             socket: socket
         }
