@@ -1,4 +1,10 @@
 var _ = require('lodash');
+var debugMode = process.env.DEBUG;
+function log(string) {
+    if(debugMode) {
+        console.log(string);
+    }
+}
 
 var express = require('express');
 var socketIO = require('socket.io');
@@ -32,12 +38,12 @@ var pis = {
 };
 
 clientChannel.on('connection', function(socket) {
-    console.log('client connected');
+    log('client connected');
 
     socket.emit('initial-state', pis);
 
     socket.on('disconnect', function() {
-        console.log('client disconnected');
+        log('client disconnected');
     });
 });
 
@@ -59,8 +65,9 @@ _.forEach(pis, function(pi) {
            pi.status = 'free';
            pi.time = null;
        }
-        clientChannel.emit('room-update', pi );
-        setTimeout(setStatus, getRandomInt(2500, 10000))
+       log(pi.room + ' - New Status: ' + pi.status);
+       clientChannel.emit('room-update', pi );
+       setTimeout(setStatus, getRandomInt(2500, 10000))
     };
     setTimeout(setStatus, getRandomInt(2500, 10000))
 });
@@ -70,6 +77,7 @@ function roomFree(socket) {
         clearTimeout(socket.timeout);
         socket.timeout = undefined;
     }
+    log(socket.room + ' - New Status: free');
     clientChannel.emit('room-update', {
         room: socket.room,
         status: 'free'
@@ -80,11 +88,13 @@ var overdueTimeout = 500;
 function roomOccupied(socket) {
     socket.timeout = setTimeout(function() {
         socket.emit('overdue');
+        log(socket.room + ' - New Status: overdue');
         clientChannel.emit('room-update', {
             room: socket.room,
             status: 'overdue'
         });
     }, overdueTimeout);
+    log(socket.room + ' - New Status: occupied');
     clientChannel.emit('room-update', {
         room: socket.room,
         status: 'occupied'
@@ -92,9 +102,10 @@ function roomOccupied(socket) {
 }
 
 roomChannel.on('connection', function(socket) {
-    console.log('PI CONNECTED!!!!!');
+    log('PI CONNECTED!!!!!');
 
     socket.on('register', function(room) {
+        log(room + ' registered!');
         socket.room = room;
         pis[room] = {
             room: room,
@@ -104,7 +115,7 @@ roomChannel.on('connection', function(socket) {
     });
 
     socket.on('disconnect', function() {
-        console.log('PI Disconnected');
+        log(socket.room + ' Disconnected');
 
         if (socket.timeout) {
             clearTimeout(socket.timeout);
@@ -116,7 +127,7 @@ roomChannel.on('connection', function(socket) {
     });
 
     socket.on('update', function(state) {
-        console.log(state);
+        log(state);
         switch(state) {
             case 'free':
                 roomFree(socket);
