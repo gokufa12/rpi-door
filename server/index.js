@@ -45,6 +45,12 @@ clientChannel.on('connection', function(socket) {
     socket.on('disconnect', function() {
         log('client disconnected');
     });
+
+    socket.on('reserve-room', function(data) {
+        if ( !_.isUndefined( _.get( pis, [ data.room, 'socket' ] ) ) ) {
+            pis[ data.room ].socket.emit( 'reserve-room', data );
+        }
+    });
 });
 
 
