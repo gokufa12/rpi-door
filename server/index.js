@@ -24,18 +24,7 @@ var io = socketIO(server);
 var clientChannel = io.of('/client');
 var roomChannel = io.of('/rooms');
 
-var pis = {
-    Room1: {
-        room: 'Room1',
-        status: 'free',
-        time: null
-    },
-    Room2: {
-        room: 'Room2',
-        status: 'occupied',
-        time: new Date()
-    }
-};
+var pis = {};
 
 clientChannel.on('connection', function(socket) {
     log('client connected');
@@ -59,31 +48,6 @@ clientChannel.on('connection', function(socket) {
             })
         }
     });
-});
-
-
-function getRandomInt(min, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-}
-
-_.forEach(pis, function(pi) {
-   var setStatus = function() {
-       if (pi.status === 'free') {
-           pi.status = 'occupied';
-           pi.time = new Date();
-       } else if ( pi.status === 'occupied' ) {
-           pi.status = 'overdue';
-       } else {
-           pi.status = 'free';
-           pi.time = null;
-       }
-       log(pi.room + ' - New Status: ' + pi.status);
-       clientChannel.emit('room-update', pi );
-       setTimeout(setStatus, getRandomInt(2500, 10000))
-    };
-    setTimeout(setStatus, getRandomInt(2500, 10000))
 });
 
 function roomFree(socket) {
