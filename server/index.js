@@ -51,6 +51,12 @@ clientChannel.on('connection', function(socket) {
     socket.on('reserve-room', function(data) {
         if ( !_.isUndefined( _.get( pis, [ data.room, 'socket' ] ) ) ) {
             roomReserve(pis[ data.room ].socket);
+        } else {
+            clientChannel.emit('room-update', {
+                room: data.room,
+                status: 'reserved',
+                duration: reserveTimeout
+            })
         }
     });
 });
@@ -106,11 +112,11 @@ function roomReserve(socket) {
         clearTimeout(socket.reservedTimeout);
         socket.reservedTimeout = undefined;
     }
-
     if (socket.timeout) {
         clearTimeout(socket.timeout);
         socket.timeout = undefined;
     }
+
     socket.reservedTimeout = setTimeout( function() {
         socket.time = null;
         pis[ socket.room ] = _.merge( pis[ socket.room ], {
@@ -124,6 +130,7 @@ function roomReserve(socket) {
             time: socket.time
         });
     }, reserveTimeout);
+
     socket.emit('reserve', {
         duration: reserveTimeout
     });
@@ -135,7 +142,8 @@ function roomReserve(socket) {
 
     clientChannel.emit('room-update', {
         room: socket.room,
-        status: 'reserved'
+        status: 'reserved',
+        duration: reserveTimeout
     });
 
 }
@@ -213,6 +221,10 @@ roomChannel.on('connection', function(socket) {
 
     socket.on('update', function(state) {
         log(state);
+        if (socket.state === state) {
+            log('Encountered duplicate state, ignoring');
+            return;
+        }
         switch(state) {
             case 'free':
                 roomFree(socket);

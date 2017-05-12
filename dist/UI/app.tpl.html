@@ -17,8 +17,11 @@
         <td>{{room.room}}</td>
         <td>{{room.status}}</td>
         <td>
-          <div ng-if="room.time">
+          <div ng-if="room.time && room.status !== 'reserved'">
             {{room.time}}
+          </div>
+          <div ng-if="room.status === 'reserved'">
+            {{room.countdownString}}
           </div>
           <div ng-if="!room.time && room.status === 'free'">
             <button type="button" class="btn btn-primary" ng-click="$ctrl.reserveRoom(room)">Reserve</button>
