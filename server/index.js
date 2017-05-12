@@ -91,7 +91,7 @@ function roomFree(socket) {
         status: 'free'
     });
 }
-var reserveTimeout = 500;
+var reserveTimeout = 5000;
 function roomReserve(socket) {
     socket.reservedTimeout = setTimeout( function() {
         clientChannel.emit('room-update', {
@@ -100,7 +100,7 @@ function roomReserve(socket) {
         });
     }, reserveTimeout);
     socket.emit('reserve', {
-        duration: 2000
+        duration: reserveTimeout
     });
     clientChannel.emit('room-update', {
         room: socket.room,
@@ -109,7 +109,7 @@ function roomReserve(socket) {
 
 }
 
-var overdueTimeout = 500;
+var overdueTimeout = 10 * 1000;
 function roomOccupied(socket) {
     if (socket.reservedTimeout) {
         clearTimeout(socket.reservedTimeout);
