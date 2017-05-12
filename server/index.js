@@ -34,7 +34,9 @@ var pis = {
 clientChannel.on('connection', function(socket) {
     console.log('client connected');
 
-    socket.emit('initial-state', pis);
+    socket.emit('initial-state', _.map(pis, function(room) {
+        return _.pick(room, ['room', 'status', 'time']);
+    }));
 
     socket.on('disconnect', function() {
         console.log('client disconnected');
