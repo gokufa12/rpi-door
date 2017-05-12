@@ -86,9 +86,11 @@ function roomFree(socket) {
         socket.timeout = undefined;
     }
     log(socket.room + ' - New Status: free');
+    socket.time = null;
     clientChannel.emit('room-update', {
         room: socket.room,
-        status: 'free'
+        status: 'free',
+        time: socket.time
     });
 }
 var reserveTimeout = 5000;
@@ -120,13 +122,16 @@ function roomOccupied(socket) {
         log(socket.room + ' - New Status: overdue');
         clientChannel.emit('room-update', {
             room: socket.room,
-            status: 'overdue'
+            status: 'overdue',
+            time: socket.time
         });
     }, overdueTimeout);
     log(socket.room + ' - New Status: occupied');
+    socket.time = new Date();
     clientChannel.emit('room-update', {
         room: socket.room,
-        status: 'occupied'
+        status: 'occupied',
+        time: socket.time
     });
 }
 
