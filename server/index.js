@@ -87,6 +87,13 @@ function roomFree(socket) {
     }
     log(socket.room + ' - New Status: free');
     socket.time = null;
+
+    pis[ socket.room ] = _.merge( pis[ socket.room ], {
+        room: socket.room,
+        status: 'free',
+        time: socket.time
+    });
+
     clientChannel.emit('room-update', {
         room: socket.room,
         status: 'free',
@@ -105,14 +112,27 @@ function roomReserve(socket) {
         socket.timeout = undefined;
     }
     socket.reservedTimeout = setTimeout( function() {
+        socket.time = null;
+        pis[ socket.room ] = _.merge( pis[ socket.room ], {
+            room: socket.room,
+            status: 'free',
+            time: socket.time
+        });
         clientChannel.emit('room-update', {
             room: socket.room,
-            status: 'free'
+            status: 'free',
+            time: socket.time
         });
     }, reserveTimeout);
     socket.emit('reserve', {
         duration: reserveTimeout
     });
+
+    pis[ socket.room ] = _.merge( pis[ socket.room ], {
+        room: socket.room,
+        status: 'reserved',
+    });
+
     clientChannel.emit('room-update', {
         room: socket.room,
         status: 'reserved'
@@ -134,6 +154,13 @@ function roomOccupied(socket) {
     socket.timeout = setTimeout(function() {
         socket.emit('overdue');
         log(socket.room + ' - New Status: overdue');
+
+        pis[ socket.room ] = _.merge( pis[ socket.room ], {
+            room: socket.room,
+            status: 'overdue',
+            time: socket.time
+        });
+
         clientChannel.emit('room-update', {
             room: socket.room,
             status: 'overdue',
@@ -142,6 +169,13 @@ function roomOccupied(socket) {
     }, overdueTimeout);
     log(socket.room + ' - New Status: occupied');
     socket.time = new Date();
+
+    pis[ socket.room ] = _.merge( pis[ socket.room ], {
+        room: socket.room,
+        status: 'occupied',
+        time: socket.time
+    });
+
     clientChannel.emit('room-update', {
         room: socket.room,
         status: 'occupied',
