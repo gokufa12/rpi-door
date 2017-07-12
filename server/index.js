@@ -71,7 +71,7 @@ function roomFree(socket) {
         time: socket.time
     });
 }
-var reserveTimeout = 10 * 60000; //10 minutes timeout
+var reserveTimeout = 30 * 1000; //30 second time to get to room
 function roomReserve(socket) {
     if (socket.reservedTimeout) {
         clearTimeout(socket.reservedTimeout);
@@ -115,7 +115,7 @@ function roomReserve(socket) {
 
 }
 
-var overdueTimeout = 10 * 1000;
+var overdueTimeout = 10 * 60000; //10 minute overdue timeout
 function roomOccupied(socket) {
     if (socket.reservedTimeout) {
         clearTimeout(socket.reservedTimeout);
